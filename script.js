@@ -1,280 +1,261 @@
-const ADMIN_PASSWORD = "P@$$w0rd.Chris27";
-let isAdminLoggedIn = false;
-let currentReadingBookId = null;
+// LocalStorage Keys
+const BOOKS_KEY = 'lifetime_library_books';
+const COMMENTS_KEY = 'lifetime_library_comments';
 
-// Initial Default Database Structure
-let booksDatabase = [
-    {
-        id: "book-1",
-        title: "Sword Art Online: Ang Kwento ng Pagkabuhay",
-        author: "Kirito_Dev",
-        tag: "action",
-        coverColor: "#1d4ed8",
-        views: 142,
-        chapters: [
-            { title: "Kabanata 1: Ang Simula ng Link Start", content: "Maligayang pagdating sa mundo ng Aincrad. Isang mundong gawa sa bakal at digital code kung saan ang kamatayan sa laro ay nangangahulugan ng tunay na katapusan..." }
-        ],
-        comments: [
-            { id: "comment-1", username: "Asuna_Fan", text: "Napakaganda naman ng panimula na ito! Excited na ako sa susunod." }
-        ]
-    },
-    {
-        id: "book-2",
-        title: "The Millionaire's Irresistible Enemy",
-        author: "Misha_Write",
-        tag: "romance",
-        coverColor: "#be123c",
-        views: 89,
-        chapters: [
-            { title: "Chapter 1: The Unexpected Encounter", content: "Nagkatagpo ang kanilang mga mata sa gitna ng mataong siyudad..." }
-        ],
-        comments: []
-    }
+// Default initial books
+const defaultBooks = [
+  {
+    id: 'b1',
+    title: 'Noli Me Tangere',
+    author: 'Dr. Jose Rizal',
+    genre: 'Kasaysayan',
+    desc: 'Isang nobelang naglalahad ng lipunang Pilipino noong panahon ng pananakop ng Espanyol.'
+  },
+  {
+    id: 'b2',
+    title: 'Ang Lihim ng AI at Coding',
+    author: 'Juan Developer',
+    genre: 'Teknolohiya',
+    desc: 'Isang kapana-panabik na gabay sa mundo ng artificial intelligence at software engineering.'
+  }
 ];
 
-function initLibrary() {
-    const savedData = localStorage.getItem('wattpad_books_data_v2');
-    if (savedData) {
-        booksDatabase = JSON.parse(savedData);
-    }
-    renderLibraryGrid();
-    populateBookDropdown();
+// App State
+let books = JSON.parse(localStorage.getItem(BOOKS_KEY)) || defaultBooks;
+let comments = JSON.parse(localStorage.getItem(COMMENTS_KEY)) || {};
+let currentGenreFilter = 'all';
+let currentSearchTerm = '';
+let currentActiveBookId = null;
+
+// Save to LocalStorage
+function saveData() {
+  localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+  localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
 }
 
-function renderLibraryGrid() {
-    const featuredGrid = document.getElementById('featured-grid');
-    const newReleasesGrid = document.getElementById('newreleases-grid');
-    
-    featuredGrid.innerHTML = "";
-    newReleasesGrid.innerHTML = "";
+// Ensure default data is saved on first load
+if (!localStorage.getItem(BOOKS_KEY)) saveData();
 
-    booksDatabase.forEach((book, index) => {
-        const cardHTML = `
-            <div class="book-card" onclick="openBookReader('${book.id}')">
-                <div class="book-cover" style="background: linear-gradient(135deg, ${book.coverColor}, #000000);">
-                    <div class="book-cover-title">${book.title}</div>
-                </div>
-                <div class="book-info-title">${book.title}</div>
-                <div class="book-info-author">ni ${book.author}</div>
-                <div style="font-size: 11px; opacity: 0.6; margin-top: 2px;">👁️ ${book.views || 0} views</div>
-                <span class="tag-badge">#${book.tag}</span>
-            </div>
-        `;
+// ================= READERS PAGE LOGIC =================
+const booksGrid = document.getElementById('books-grid');
+const searchInput = document.getElementById('search-input');
+const categoryBoxes = document.querySelectorAll('.cat-box');
 
-        if (index % 2 === 0) {
-            featuredGrid.innerHTML += cardHTML;
-        } else {
-            newReleasesGrid.innerHTML += cardHTML;
-        }
+if (booksGrid) {
+  renderBooks();
+
+  // Category Filter
+  categoryBoxes.forEach(box => {
+    box.addEventListener('click', () => {
+      categoryBoxes.forEach(b => b.classList.remove('active'));
+      box.classList.add('active');
+      currentGenreFilter = box.dataset.genre;
+      renderBooks();
     });
-}
+  });
 
-function openBookReader(bookId) {
-    currentReadingBookId = bookId;
-    const book = booksDatabase.find(b => b.id === bookId);
-    
-    if (!book) return;
-
-    if (!book.views) book.views = 0;
-    book.views++;
-    saveDatabaseSilently();
-
-    document.getElementById('view-home').classList.add('hidden');
-    document.getElementById('view-reader').classList.remove('hidden');
-
-    document.getElementById('reader-book-title').innerText = book.title;
-    document.getElementById('reader-book-author').innerText = `Isinulat ni: ${book.author}`;
-    document.getElementById('reader-book-views').innerText = `👁️ ${book.views} views`;
-
-    const chaptersContainer = document.getElementById('reader-chapters-container');
-    chaptersContainer.innerHTML = "";
-
-    if (book.chapters.length === 0) {
-        chaptersContainer.innerHTML = "<p style='color: #64748b;'>Wala pang inilalathalang kabanata ang may-akda sa librong ito.</p>";
-    } else {
-        book.chapters.forEach(ch => {
-            chaptersContainer.innerHTML += `
-                <div class="chapter-view-box">
-                    <h3>${ch.title}</h3>
-                    <p>${ch.content.replace(/\n/g, '<br>')}</p>
-                </div>
-            `;
-        });
-    }
-
-    renderComments(book);
-    window.scrollTo(0, 0);
-}
-
-// 💬 RENDER COMMENTS + DYNAMIC ADMIN DELETE BUTTON
-function renderComments(book) {
-    const listContainer = document.getElementById('comments-list-container');
-    const countDisplay = document.getElementById('comments-count');
-    
-    if (!book.comments) book.comments = [];
-    
-    countDisplay.innerText = book.comments.length;
-    listContainer.innerHTML = "";
-
-    if (book.comments.length === 0) {
-        listContainer.innerHTML = "<p style='color: #64748b; font-size: 14px;'>Wala pang komento rito. Ika'y maging una!</p>";
-        return;
-    }
-
-    book.comments.forEach(c => {
-        // 🛡️ Kung ang Admin ay naka-login, magpapakita ang Delete button [1]
-        let deleteButtonHTML = "";
-        if (isAdminLoggedIn) {
-            deleteButtonHTML = `<button onclick="deleteComment('${c.id}')" style="background-color: #ef4444; color: white; font-size: 11px; padding: 3px 8px; margin-top: 8px; float: right;">🗑️ Burahin</button>`;
-        }
-
-        listContainer.innerHTML += `
-            <div class="single-comment" style="overflow: hidden;">
-                ${deleteButtonHTML}
-                <div class="comment-user">👤 ${c.username}</div>
-                <p class="comment-text-content">${c.text}</p>
-            </div>
-        `;
+  // Search Filter
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      currentSearchTerm = e.target.value.toLowerCase();
+      renderBooks();
     });
+  }
 }
 
-// ➕ SUBMIT NEW USER COMMENT
-function submitComment() {
-    const usernameInput = document.getElementById('comment-username').value.trim();
-    const textInput = document.getElementById('comment-text').value.trim();
+function renderBooks() {
+  if (!booksGrid) return;
+  booksGrid.innerHTML = '';
 
-    if (!usernameInput || !textInput) {
-        alert("Pakisulat ang iyong pangalan at komento bago mag-submit!");
-        return;
-    }
+  const filtered = books.filter(book => {
+    const matchesGenre = currentGenreFilter === 'all' || book.genre === currentGenreFilter;
+    const matchesSearch = book.title.toLowerCase().includes(currentSearchTerm) ||
+                          book.author.toLowerCase().includes(currentSearchTerm);
+    return matchesGenre && matchesSearch;
+  });
 
-    const book = booksDatabase.find(b => b.id === currentReadingBookId);
-    if (book) {
-        if (!book.comments) book.comments = [];
-        
-        book.comments.push({
-            id: "comment-" + Date.now(), // Gumawa ng natatanging ID para sa komento
-            username: usernameInput,
-            text: textInput
-        });
+  if (filtered.length === 0) {
+    booksGrid.innerHTML = `<p style="color: #94a3b8; grid-column: 1/-1; text-align: center;">Walang nahanap na libro.</p>`;
+    return;
+  }
 
-        saveDatabaseSilently();
-        renderComments(book);
-
-        document.getElementById('comment-text').value = "";
-    }
+  filtered.forEach(book => {
+    const card = document.createElement('div');
+    card.className = 'book-card';
+    card.innerHTML = `
+      <div>
+        <span class="book-genre-badge">${escapeHtml(book.genre)}</span>
+        <h3>${escapeHtml(book.title)}</h3>
+        <p class="book-author">ni ${escapeHtml(book.author)}</p>
+        <p class="book-desc-preview">${escapeHtml(book.desc)}</p>
+      </div>
+      <button class="read-btn" data-id="${book.id}">Basahin at Mag-komento</button>
+    `;
+    booksGrid.appendChild(card);
+  });
 }
 
-// 🗑️ ADMIN ACTION: DELETE SPECIFIC COMMENT [1]
-function deleteComment(commentId) {
-    if (!isAdminLoggedIn) {
-        alert("Error: Admin lamang ang may pahintulot na magbura!");
-        return;
-    }
+// Modal Reader & Comments
+const readerModal = document.getElementById('reader-modal');
+const closeModal = document.querySelector('.close-modal');
+const modalBookDetails = document.getElementById('modal-book-details');
+const commentForm = document.getElementById('comment-form');
+const commentsList = document.getElementById('comments-list');
 
-    const konfirmasyon = confirm("Sigurado ka bang nais mong burahin ang komentong ito?");
-    if (!konfirmasyon) return;
-
-    const book = booksDatabase.find(b => b.id === currentReadingBookId);
-    if (book && book.comments) {
-        // Alisin ang komento na tumutugma sa commentId [1]
-        book.comments = book.comments.filter(c => c.id !== commentId);
-        
-        saveDatabaseSilently();
-        renderComments(book); // I-refresh ang listahan sa screen
+if (booksGrid) {
+  booksGrid.addEventListener('click', (e) => {
+    if (e.target.classList.contains('read-btn')) {
+      openReaderModal(e.target.dataset.id);
     }
+  });
 }
 
-function goBackHome() {
-    document.getElementById('view-reader').classList.add('hidden');
-    document.getElementById('view-home').classList.remove('hidden');
-    renderLibraryGrid();
+function openReaderModal(bookId) {
+  currentActiveBookId = bookId;
+  const book = books.find(b => b.id === bookId);
+  if (!book) return;
+
+  modalBookDetails.innerHTML = `
+    <span class="book-genre-badge">${escapeHtml(book.genre)}</span>
+    <h2 style="font-size: 1.5rem; margin-top: 5px; color: #f8fafc;">${escapeHtml(book.title)}</h2>
+    <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 15px;">May-akda: ${escapeHtml(book.author)}</p>
+    <div style="background-color: #0f172a; padding: 15px; border-radius: 6px; border: 1px solid #334155; line-height: 1.6; font-size: 0.95rem;">
+      ${escapeHtml(book.desc)}
+    </div>
+  `;
+
+  renderComments(bookId);
+  readerModal.style.display = 'flex';
 }
 
-// ADMIN DASHBOARD UTILITIES
-function toggleDevMode() {
-    if (!isAdminLoggedIn) {
-        let entry = prompt("Ilagay ang Admin/Developer Password upang makapagdagdag ng libro:");
-        if (entry === ADMIN_PASSWORD) {
-            isAdminLoggedIn = true;
-            document.getElementById('dev-panel').classList.remove('hidden');
-            document.getElementById('dev-mode-btn').innerText = "🔓 Admin Logout";
-            populateBookDropdown();
-            
-            // Kung kasalukuyang nagbabasa, i-refresh ang comment zone para lumabas ang delete buttons [1]
-            if (currentReadingBookId) {
-                const book = booksDatabase.find(b => b.id === currentReadingBookId);
-                if (book) renderComments(book);
-            }
-        } else if (entry !== null) {
-            alert("Maling Password! Access Denied.");
-        }
-    } else {
-        isAdminLoggedIn = false;
-        document.getElementById('dev-panel').classList.add('hidden');
-        document.getElementById('dev-mode-btn').innerText = "🔒 Admin Login";
-        
-        // I-refresh ang comments upang itago muli ang delete buttons kapag nag-logout ang admin [1]
-        if (currentReadingBookId) {
-            const book = booksDatabase.find(b => b.id === currentReadingBookId);
-            if (book) renderComments(book);
-        }
-    }
+if (closeModal) {
+  closeModal.addEventListener('click', () => readerModal.style.display = 'none');
+  window.addEventListener('click', (e) => {
+    if (e.target === readerModal) readerModal.style.display = 'none';
+  });
 }
 
-function switchDevTab(tabType) {
-    if (tabType === 'book') {
-        document.getElementById('form-new-book').classList.remove('hidden');
-        document.getElementById('form-new-chapter').classList.add('hidden');
-    } else {
-        document.getElementById('form-new-book').classList.add('hidden');
-        document.getElementById('form-new-chapter').classList.remove('hidden');
-    }
+function renderComments(bookId) {
+  if (!commentsList) return;
+  commentsList.innerHTML = '';
+  const bookComments = comments[bookId] || [];
+
+  if (bookComments.length === 0) {
+    commentsList.innerHTML = `<p style="font-size: 0.85rem; color: #94a3b8; text-align: center;">Wala pang komento. Mag-iwan ng unang komento!</p>`;
+    return;
+  }
+
+  bookComments.forEach(comm => {
+    const div = document.createElement('div');
+    div.className = 'comment-item';
+    div.innerHTML = `
+      <div class="comment-content">
+        <strong>${escapeHtml(comm.name)}</strong>
+        <p>${escapeHtml(comm.text)}</p>
+      </div>
+      <button class="delete-comment-btn" data-commentid="${comm.id}">🗑️ Burahin</button>
+    `;
+    commentsList.appendChild(div);
+  });
 }
 
-function createNewBook() {
-    const title = document.getElementById('new-book-title').value.trim();
-    const author = document.getElementById('new-book-author').value.trim();
-    const tag = document.getElementById('new-book-tag').value.trim();
-    const color = document.getElementById('new-book-color').value;
+if (commentForm) {
+  commentForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('comment-name').value.trim();
+    const text = document.getElementById('comment-text').value.trim();
 
-    if (!title || !author || !tag) {
-        alert("Paki-puno lahat ng patlang!");
-        return;
+    if (!name || !text || !currentActiveBookId) return;
+
+    if (!comments[currentActiveBookId]) comments[currentActiveBookId] = [];
+
+    comments[currentActiveBookId].push({
+      id: 'c_' + Date.now(),
+      name: name,
+      text: text
+    });
+
+    saveData();
+    renderComments(currentActiveBookId);
+    document.getElementById('comment-text').value = '';
+  });
+}
+
+if (commentsList) {
+  commentsList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-comment-btn')) {
+      const commentId = e.target.dataset.commentid;
+      if (confirm('Sigurado ka bang gusto mong burahin ang komentong ito?')) {
+        comments[currentActiveBookId] = comments[currentActiveBookId].filter(c => c.id !== commentId);
+        saveData();
+        renderComments(currentActiveBookId);
+      }
     }
+  });
+}
 
-    const newBookObj = {
-        id: "book-" + Date.now(),
-        title: title,
-        author: author,
-        tag: tag.toLowerCase(),
-        coverColor: color,
-        views: 0,
-        chapters: [],
-        comments: []
+// ================= DEVELOPER PAGE LOGIC =================
+const addBookForm = document.getElementById('add-book-form');
+const devBooksList = document.getElementById('dev-books-list');
+
+if (addBookForm) {
+  addBookForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const newBook = {
+      id: 'b_' + Date.now(),
+      title: document.getElementById('book-title').value.trim(),
+      author: document.getElementById('book-author').value.trim(),
+      genre: document.getElementById('book-genre').value,
+      desc: document.getElementById('book-desc').value.trim()
     };
 
-    booksDatabase.push(newBookObj);
-    saveDatabase();
-    
-    document.getElementById('new-book-title').value = "";
-    document.getElementById('new-book-author').value = "";
-    document.getElementById('new-book-tag').value = "";
-    alert(`🎉 Nailathala ang aklat na "${title}"!`);
+    books.push(newBook);
+    saveData();
+    renderDevBooks();
+
+    addBookForm.reset();
+    alert('Matagumpay na naidagdag at na-publish ang bagong libro!');
+  });
 }
 
-function addChapterPage() {
-    const targetBookId = document.getElementById('select-target-book').value;
-    const chTitle = document.getElementById('chapter-title').value.trim();
-    const chContent = document.getElementById('chapter-content').value.trim();
+function renderDevBooks() {
+  if (!devBooksList) return;
+  devBooksList.innerHTML = '';
 
-    if (!chTitle || !chContent) {
-        alert("Pakisulat ang pamagat at nilalaman!");
-        return;
+  books.forEach(book => {
+    const div = document.createElement('div');
+    div.className = 'dev-book-item';
+    div.innerHTML = `
+      <div>
+        <strong>${escapeHtml(book.title)}</strong> (${escapeHtml(book.genre)})
+        <p style="font-size: 0.8rem; color: #94a3b8;">ni ${escapeHtml(book.author)}</p>
+      </div>
+      <button class="delete-book-btn" data-id="${book.id}">Burahin ang Libro</button>
+    `;
+    devBooksList.appendChild(div);
+  });
+}
+
+if (devBooksList) {
+  renderDevBooks();
+
+  devBooksList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-book-btn')) {
+      const bookId = e.target.dataset.id;
+      if (confirm('Sigurado ka bang gusto mong burahin ang librong ito sa system?')) {
+        books = books.filter(b => b.id !== bookId);
+        delete comments[bookId]; // Alisin din ang kaugnay na comments
+        saveData();
+        renderDevBooks();
+      }
     }
+  });
+}
 
-    const book = booksDatabase.find(b => b.id === targetBookId);
-    if (book) {
-        book.chapters.push({ title: chTitle, content: chContent });
-        saveDatabase();
-
+// Helper XSS Protection
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}

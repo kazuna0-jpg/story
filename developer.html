@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aklatan Online - Developer Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <h1>⚙️ Developer Dashboard</h1>
+        <a href="index.html" class="dev-link">📖 Pumunta sa Readers Site</a>
+      </div>
+      <p class="subtitle">Magdagdag, Mag-update, at Mag-manage ng mga Libro</p>
+    </header>
+
+    <!-- Add Book Form -->
+    <div class="admin-card">
+      <h2>➕ Magdagdag ng Bagong Libro</h2>
+      <form id="add-book-form">
+        <div class="form-group">
+          <label>Pamagat ng Libro:</label>
+          <input type="text" id="book-title" placeholder="Hal: Ang Alamat ng Kape" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>May-akda (Author):</label>
+            <input type="text" id="book-author" placeholder="Hal: Maria Clara" required>
+          </div>
+          <div class="form-group">
+            <label>Kategorya / Genre:</label>
+            <select id="book-genre" required>
+              <option value="Fiction">Fiction</option>
+              <option value="Romansa">Romansa</option>
+              <option value="Kasaysayan">Kasaysayan</option>
+              <option value="Teknolohiya">Teknolohiya</option>
+              <option value="Misteryo">Misteryo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Buod / Nilalaman ng Libro:</label>
+          <textarea id="book-desc" placeholder="Isulat dito ang buod o kabuuang nilalaman ng libro..." rows="5" required></textarea>
+        </div>
+
+        <button type="submit" class="dev-btn">I-publish sa Readers Site</button>
+      </form>
+    </div>
+
+    <!-- Manage Existing Books -->
+    <section class="admin-manage-section">
+      <h2>📁 Pamahalaan ang mga Naipublish na Libro</h2>
+      <div id="dev-books-list" class="dev-books-list"></div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
