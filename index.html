@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wattpad Style - Infinite Stories Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+
+    <div class="app-container">
+        <!-- TOP NAVIGATION BAR -->
+        <header class="main-navbar">
+            <div class="logo">🟠 WattpadX</div>
+            <div class="search-bar-box">
+                <input type="text" placeholder="🔍 Maghanap ng kwento...">
+            </div>
+            <div class="nav-controls">
+                <button id="theme-btn" onclick="toggleTheme()">☀️ Light Mode</button>
+                <button id="dev-mode-btn" onclick="toggleDevMode()">🔒 Admin Login</button>
+            </div>
+        </header>
+
+        <!-- DEVELOPER CREATION PANEL (Admin Only) -->
+        <div id="dev-panel" class="panel hidden">
+            <h3>🛠️ Developer Dashboard (Admin)</h3>
+            <div class="dev-tabs">
+                <button onclick="switchDevTab('book')">🆕 Gumawa ng Bagong Libro</button>
+                <button onclick="switchDevTab('chapter')">📝 Magdagdag ng Kabanata</button>
+            </div>
+
+            <!-- TAB 1: NEW BOOK FORM -->
+            <div id="form-new-book" class="dev-form-section">
+                <h4>Magdagdag ng Bagong Libro</h4>
+                <input type="text" id="new-book-title" placeholder="Pamagat ng Libro">
+                <input type="text" id="new-book-author" placeholder="Pangalan ng May-akda">
+                <input type="text" id="new-book-tag" placeholder="Genre/Tag (e.g., romance, action)">
+                <label>Kulay ng Cover:</label>
+                <input type="color" id="new-book-color" value="#3b82f6">
+                <button onclick="createNewBook()" style="background-color: #10b981; color: white; margin-top: 10px;">➕ I-publish ang Libro</button>
+            </div>
+
+            <!-- TAB 2: NEW CHAPTER FORM -->
+            <div id="form-new-chapter" class="dev-form-section hidden">
+                <h4>Magdagdag ng Kabanata sa Libro</h4>
+                <label>Piliin kung saang libro isusulat:</label>
+                <select id="select-target-book"></select>
+                <input type="text" id="chapter-title" placeholder="Pamagat ng Kabanata (e.g., Kabanata 1)">
+                <textarea id="chapter-content" rows="6" placeholder="Isulat dito ang kwento..."></textarea>
+                <button onclick="addChapterPage()" style="background-color: #f97316; color: white; margin-top: 10px;">➕ I-publish ang Kabanata</button>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div class="main-layout">
+            
+            <!-- VIEW 1: HOME PLATFORM -->
+            <div id="view-home" class="view-section">
+                <div class="category-header">#featuredstories</div>
+                <div class="books-grid" id="featured-grid"></div>
+
+                <div class="category-header" style="margin-top: 30px;">#newreleases</div>
+                <div class="books-grid" id="newreleases-grid"></div>
+            </div>
+
+            <!-- VIEW 2: READER MODE -->
+            <div id="view-reader" class="view-section hidden">
+                <button onclick="goBackHome()" class="back-btn">⬅️ Bumalik sa Library</button>
+                
+                <div class="reader-settings">
+                    <span>Laki ng Letra:</span>
+                    <button onclick="changeFontSize('small')">A-</button>
+                    <button onclick="changeFontSize('normal')">A</button>
+                    <button onclick="changeFontSize('large')">A+</button>
+                </div>
+
+                <div class="reader-card">
+                    <h2 id="reader-book-title">Pamagat ng Libro</h2>
+                    <p id="reader-book-author" style="color: #94a3b8; font-style: italic;">Author</p>
+                    <div id="reader-book-views" style="font-size: 13px; color: #f59e0b; margin-top: 5px;">👁️ 0 views</div>
+                    <hr style="border-color: #334155; margin: 20px 0;">
+                    
+                    <!-- Dito lalabas ang mismong kwento -->
+                    <div id="reader-chapters-container"></div>
+
+                    <!-- 💬 COMMENT SECTION ZONE -->
+                    <div class="comment-section">
+                        <h3>💬 Mga Komento (<span id="comments-count">0</span>)</h3>
+                        
+                        <!-- Input box para sa bagong komento -->
+                        <div class="comment-form">
+                            <input type="text" id="comment-username" placeholder="Iyong Pangalan (e.g., Reader99)">
+                            <textarea id="comment-text" rows="3" placeholder="Ibahagi ang iyong reaksyon sa kwentong ito..."></textarea>
+                            <button onclick="submitComment()" style="background-color: #ff6600; color: white;">Ipadala ang Komento</button>
+                        </div>
+
+                        <!-- Listahan ng mga komento -->
+                        <div id="comments-list-container"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

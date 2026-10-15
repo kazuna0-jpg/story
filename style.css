@@ -1,0 +1,89 @@
+/* Karugtong o Pamalit sa dating style.css ninyo */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+    padding-bottom: 40px;
+}
+
+body.dark-theme { background-color: #0f172a; color: #f1f5f9; }
+body.light-theme { background-color: #f8fafc; color: #0f172a; }
+
+.app-container { max-width: 1000px; margin: 0 auto; padding: 0 15px; }
+
+.main-navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #334155; margin-bottom: 25px; }
+.logo { font-size: 22px; font-weight: bold; color: #ff6600; }
+.search-bar-box input { width: 280px; padding: 8px 15px; border-radius: 20px; border: 1px solid #475569; background-color: rgba(255,255,255,0.05); color: inherit; }
+
+button { padding: 8px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+body.dark-theme button { background-color: #1e293b; color: white; }
+body.light-theme button { background-color: #e2e8f0; color: #0f172a; }
+button:hover { opacity: 0.8; }
+
+.panel { background-color: rgba(30, 41, 59, 0.5); border: 2px dashed #ff6600; border-radius: 12px; padding: 20px; margin-bottom: 25px; }
+.dev-tabs { margin-bottom: 15px; display: flex; gap: 10px; }
+.dev-form-section input, .dev-form-section textarea, .dev-form-section select { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box; }
+
+.hidden { display: none !important; }
+.category-header { font-size: 20px; font-weight: bold; color: #ff6600; margin-bottom: 15px; }
+.books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+
+.book-card { cursor: pointer; transition: transform 0.2s; }
+.book-card:hover { transform: translateY(-5px); }
+.book-cover { width: 100%; height: 220px; border-radius: 8px; display: flex; flex-direction: column; justify-content: flex-end; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.3); color: white; }
+.book-cover-title { font-weight: bold; font-size: 15px; margin-bottom: 5px; text-shadow: 1px 1px 4px rgba(0,0,0,0.8); }
+.book-info-title { font-weight: bold; font-size: 14px; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.book-info-author { font-size: 12px; opacity: 0.7; margin: 3px 0; }
+.tag-badge { display: inline-block; background-color: rgba(148, 163, 184, 0.2); padding: 2px 8px; font-size: 11px; border-radius: 12px; margin-top: 5px; }
+
+.back-btn { background-color: #ff6600 !important; color: white !important; margin-bottom: 20px; }
+.reader-settings { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; float: right; }
+.reader-card { clear: both; background-color: rgba(30, 41, 59, 0.3); border: 1px solid #334155; padding: 30px; border-radius: 12px; }
+
+.font-small { font-size: 14px; line-height: 1.6; }
+.font-normal { font-size: 17px; line-height: 1.8; }
+.font-large { font-size: 22px; line-height: 2.0; }
+
+.chapter-view-box { margin-bottom: 40px; border-bottom: 1px dashed rgba(148, 163, 184, 0.2); padding-bottom: 30px; }
+.chapter-view-box h3 { color: #ff6600; }
+
+/* 💬 Comment Box Styles */
+.comment-section {
+    margin-top: 5px;
+    padding-top: 30px;
+    border-top: 2px solid #334155;
+}
+.comment-form {
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.comment-form input, .comment-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    background-color: rgba(0,0,0,0.2);
+    color: inherit;
+    box-sizing: border-box;
+}
+.single-comment {
+    background-color: rgba(255, 255, 255, 0.03);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border-left: 3px solid #ff6600;
+}
+.comment-user {
+    font-weight: bold;
+    font-size: 13px;
+    color: #ff6600;
+    margin-bottom: 4px;
+}
+.comment-text-content {
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.5;
+}
